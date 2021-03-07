@@ -2,21 +2,13 @@ package com.mircoserivces.moviecatalogservice.models;
 
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
-public class Catalog {
-
+public class Catalogs {
     @Getter
     @Setter(AccessLevel.PRIVATE)
-    public int movieId;
-
-    @Getter
-    @Setter
-    public String description;
-
-    @Getter
-    @Setter(AccessLevel.PRIVATE)
-    public int userRating;
+    List<Catalog> catalogs = new ArrayList<>();
 }

@@ -1,4 +1,5 @@
 package com.mircoserivces.movieinfoservice.models;
+
 import lombok.*;
 
 @NoArgsConstructor
