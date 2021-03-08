@@ -1,23 +1,18 @@
 package com.mircoserivces.moviecatalogservice;
 
 import com.mircoserivces.moviecatalogservice.models.*;
+import com.mircoserivces.moviecatalogservice.services.MoviesService;
+import com.mircoserivces.moviecatalogservice.services.RatingsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,6 +24,12 @@ public class MovieCatalogController {
     @Autowired
     private WebClient.Builder webClient;
 
+    @Autowired
+    private MoviesService moviesService;
+
+    @Autowired
+    private RatingsService ratingsService;
+
     @RequestMapping("/catalogs/{userId}")
     public Mono<Catalogs> getCatalogs(@PathVariable int userId) throws InterruptedException {
         List<Catalog> catalogList = new ArrayList<>();
@@ -37,13 +38,8 @@ public class MovieCatalogController {
 
     private Mono<Catalogs> getCatalogsMono(int userId) {
 
-        return webClient
-                .build()
-                .get()
-                .uri("http://rating-data-service/ratings/{userId}", userId)
-                .retrieve()
-                .bodyToMono(Ratings.class)
-                .zipWhen(data -> getMovie(data.getRatings().stream().map(r -> r.getMovieId()).collect(Collectors.toList())))
+        return ratingsService.getRatings(userId)
+                .zipWhen(data -> moviesService.getMovies(data.getRatings().stream().map(r -> r.getMovieId()).collect(Collectors.toList())))
                 .flatMap(response -> {
                     Catalogs catalogs = new Catalogs();
                     Ratings ratings = response.getT1();
@@ -58,26 +54,6 @@ public class MovieCatalogController {
                 });
     }
 
-    Mono<Movies> getMovie(List<Integer> movieIds) {
 
-        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        for (Integer movieId : movieIds) {
-            queryParams.add("movieIds", movieId.toString());
-        }
 
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("http://MOVIE-INFO-SERVICE");
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-        return webClient
-                .uriBuilderFactory(factory)
-                .build()
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/movies/")
-                        .queryParams(queryParams)
-                        .build()
-                )
-                .retrieve()
-                .bodyToMono(Movies.class)
-                ;
-    }
 }
