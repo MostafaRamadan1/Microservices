@@ -1,6 +1,7 @@
 package com.mircoserivces.moviecatalogservice;
 
 import com.mircoserivces.moviecatalogservice.models.*;
+import com.mircoserivces.moviecatalogservice.services.CatalogService;
 import com.mircoserivces.moviecatalogservice.services.MoviesService;
 import com.mircoserivces.moviecatalogservice.services.RatingsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,41 +20,10 @@ import java.util.stream.Collectors;
 public class MovieCatalogController {
 
     @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private WebClient.Builder webClient;
-
-    @Autowired
-    private MoviesService moviesService;
-
-    @Autowired
-    private RatingsService ratingsService;
+    CatalogService catalogService;
 
     @RequestMapping("/catalogs/{userId}")
-    public Mono<Catalogs> getCatalogs(@PathVariable int userId) throws InterruptedException {
-        List<Catalog> catalogList = new ArrayList<>();
-        return getCatalogsMono(userId);
+    public Mono<Catalogs> getCatalogs(@PathVariable int userId) {
+        return catalogService.getCatalogsMono(userId);
     }
-
-    private Mono<Catalogs> getCatalogsMono(int userId) {
-
-        return ratingsService.getRatings(userId)
-                .zipWhen(data -> moviesService.getMovies(data.getRatings().stream().map(r -> r.getMovieId()).collect(Collectors.toList())))
-                .flatMap(response -> {
-                    Catalogs catalogs = new Catalogs();
-                    Ratings ratings = response.getT1();
-                    Movies movies = response.getT2();
-                    ratings.getRatings().forEach(rating -> {
-                        Movie movie = movies.getMovies().stream().filter(m -> m.movieId == rating.movieId).findFirst().get();
-                        String movieDesc = movie == null ? "No desc available" : movie.description;
-                        Catalog catalog = new Catalog(rating.movieId, movieDesc, rating.userRating);
-                        catalogs.getCatalogs().add(catalog);
-                    });
-                    return Mono.just(catalogs);
-                });
-    }
-
-
-
 }
