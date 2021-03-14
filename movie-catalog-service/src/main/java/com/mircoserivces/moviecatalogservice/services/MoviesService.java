@@ -5,6 +5,7 @@ import com.mircoserivces.moviecatalogservice.models.Movies;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -21,6 +22,9 @@ public class MoviesService {
     @Autowired
     private WebClient.Builder webClient;
 
+    @Value("${movie-service-url}")
+    private String movieInfoServiceUrl;
+
     // All hystrix configurations: https://github.com/Netflix/Hystrix/wiki/Configuration
     // Configure hystrix as Bulkhead via threads configuration
     @HystrixCommand(fallbackMethod = "getMoviesFallback", threadPoolKey = "moviesThtreadPool",
@@ -30,14 +34,14 @@ public class MoviesService {
             @HystrixProperty(name="coreSize", value="20"),
             @HystrixProperty(name="maxQueueSize", value="10"),
     })
-    public Mono<Movies> getMovies(List<Integer> movieIds) {
 
+    public Mono<Movies> getMovies(List<Integer> movieIds) {
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         for (Integer movieId : movieIds) {
             queryParams.add("movieIds", movieId.toString());
         }
 
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("http://MOVIE-INFO-SERVICE");
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(movieInfoServiceUrl);
         factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
         return webClient
                 .uriBuilderFactory(factory)

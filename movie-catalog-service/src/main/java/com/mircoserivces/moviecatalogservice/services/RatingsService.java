@@ -8,6 +8,7 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -20,6 +21,9 @@ public class RatingsService {
 
     @Autowired
     private WebClient.Builder webClient;
+
+    @Value("${rating-service-url}")
+    private String ratingDataServiceUrl;
 
     // All hystrix configurations: https://github.com/Netflix/Hystrix/wiki/Configuration
     // Configure hystrix as Circuit breaker
@@ -37,7 +41,7 @@ public class RatingsService {
         return webClient
                 .build()
                 .get()
-                .uri("http://rating-data-service/ratings/{userId}", userId)
+                .uri(ratingDataServiceUrl+"/ratings/{userId}", userId)
                 .retrieve()
                 .bodyToMono(Ratings.class);
     }

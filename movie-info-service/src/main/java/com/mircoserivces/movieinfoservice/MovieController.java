@@ -2,10 +2,7 @@ package com.mircoserivces.movieinfoservice;
 
 import com.mircoserivces.movieinfoservice.models.Movie;
 import com.mircoserivces.movieinfoservice.models.Movies;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -25,14 +22,9 @@ public class MovieController {
         add(new Movie(6, "Harry potter", "Imagination and magic movie"));
     }};
 
-    @RequestMapping(value = "/movies", params = "movieIds")
+    @GetMapping(value = "/movies", params = "movieIds")
     public Mono<Movies> getMovie(@RequestParam List<Integer> movieIds) {
         List<Movie> movies = moviesDataSource.stream().filter(m -> movieIds.contains(m.movieId)).collect(Collectors.toList());
         return Mono.just(new Movies(movies));
-    }
-
-    @RequestMapping("/isMovieLive")
-    public String isMovieLive() {
-        return "Aywa";
     }
 }

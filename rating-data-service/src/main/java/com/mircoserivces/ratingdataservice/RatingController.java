@@ -2,10 +2,7 @@ package com.mircoserivces.ratingdataservice;
 
 import com.mircoserivces.ratingdataservice.models.Rating;
 import com.mircoserivces.ratingdataservice.models.Ratings;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -25,7 +22,7 @@ public class RatingController {
         add(new Rating(2, 6, 3));
     }};
 
-    @RequestMapping("/ratings/{userId}")
+    @GetMapping("/ratings/{userId}")
     public Mono<Ratings> getRating(@PathVariable int userId) {
         List<Rating> filteredRatings = ratings.stream().filter(r -> r.userId == userId).collect(Collectors.toList());
         return Mono.just(new Ratings(filteredRatings));
