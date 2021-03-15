@@ -1,0 +1,11 @@
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+movie-service-url: http://movie-info-service
+rating-service-url: http://rating-data-service
+server:
+  port: 8083
+spring:
+  application:
+    name: movie-catalog-service
